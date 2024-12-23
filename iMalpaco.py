@@ -64,7 +64,7 @@ html_code = f"""
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>프로디지털아카데미 이벤트</title>
+    <title>iM뱅크 디지털 전문가 과정 - 크리스마스 이벤트</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
         
