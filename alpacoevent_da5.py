@@ -1,49 +1,37 @@
-# 필요한 라이브러리 임포트
 import streamlit as st
 import pandas as pd
 import json
 from streamlit.components.v1 import html
-from io import BytesIO
 
-# 페이지 설정
 st.set_page_config(page_title="[하나은행] Digital Hana 路 데이터분석/서비스기획 5기 - 크리스마스 이벤트", layout="wide")
 
-# 예시 엑셀 파일 생성 함수
-def create_example_excel():
-    example_data = pd.DataFrame({"이름": ["홍길동", "김철수", "이영희"]})
-    buffer = BytesIO()
-    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-        example_data.to_excel(writer, index=False)
-    return buffer
-
-# 예시 파일 다운로드 버튼 생성 함수
 def example_excel():
-    buffer = create_example_excel()
-    st.download_button(
-        label="예시 파일 다운로드",
-        data=buffer.getvalue(),
-        file_name="example.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    example_data = pd.DataFrame({"이름": ["홍길동", "김철수", "이영희"]})
+    example_data.to_excel("example.xlsx", index=False)
+    with open("example.xlsx", "rb") as file:
+        st.download_button(
+            label="예시 파일 다운로드",
+            data=file,
+            file_name="example.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
 # 입력 방식 선택
 input_method = st.radio("참가자 입력 방식을 선택하세요:", 
                        ["직접 입력", "Excel 파일 업로드"],
                        horizontal=True)
 
-# 직접 입력 방식
 if input_method == "직접 입력":
     participant_count = st.number_input("참가자 수를 입력하세요:", min_value=1, value=3)
     
+    # 입력 필드들을 담을 컨테이너 생성
     participants = []
     for i in range(participant_count):
         name = st.text_input(f"참가자 {i+1} 이름:", key=f"participant_{i}")
-        if name and name.strip():
-            participants.append(name.strip())
+        if name.strip():  # 빈 문자열이 아닌 경우만 추가
+            participants.append(name)
     
     names_js_array = json.dumps(participants)
-
-# 엑셀 파일 업로드 방식
 else:
     col1, col2 = st.columns([3, 1])
     with col1:
@@ -58,56 +46,48 @@ else:
                 st.error("Excel 파일에 '이름' 열이 없습니다. 예시 파일을 참고해주세요.")
                 names_js_array = "[]"
             else:
-                df['이름'] = df['이름'].astype(str).str.strip()
-                df = df[
-                    (df['이름'].notna()) & 
-                    (df['이름'] != '') & 
-                    (~df['이름'].str.match(r'^\d+$'))
-                ]
+                df = df[df['이름'].notna()]
+                df = df[df['이름'].astype(str).str.strip() != '']
+                df = df[~df['이름'].astype(str).str.match(r'^\d+$')]
                 names = df["이름"].tolist()
-                if not names:
-                    st.warning("유효한 참가자가 없습니다. 데이터를 확인해주세요.")
                 names_js_array = json.dumps(names)
         except Exception as e:
-            st.error(f"파일 처리 중 오류가 발생했습니다: {str(e)}")
+            st.error("파일 업로드에 실패했습니다. 올바른 Excel 파일을 선택해주세요.")
+            st.write(e)
             names_js_array = "[]"
     else:
         names_js_array = "[]"
 
-# HTML 코드
-html_code = """
+html_code = f"""
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>[하나은행] Digital Hana 路 데이터분석/서비스기획 5기 - 크리스마스 이벤트</title>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" as="style">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
     <style>
-        /* 기본 스타일 */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
         
-        * {
+        * {{
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Noto Sans KR', sans-serif;
-        }
+        }}
 
-        body {
+        body {{
             background-color: #f5f5f7;
             color: #1d1d1f;
-        }
+        }}
 
-        .container {
+        .container {{
             max-width: 980px;
             margin: 0 auto;
             padding: 20px;
             text-align: center;
-        }
+        }}
 
-        .title {
+        .title {{
             font-size: 32px;
             font-weight: 500;
             line-height: 1.4;
@@ -116,18 +96,17 @@ html_code = """
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-        }
+        }}
 
-        /* 반응형 타이틀 */
-        @media (max-width: 768px) {
-            .title {
+        @media (max-width: 768px) {{
+            .title {{
                 font-size: 24px;
                 white-space: normal;
                 text-align: center;
-            }
-        }
+            }}
+        }}
 
-        .upload-section {
+        .upload-section {{
             background: white;
             padding: 30px;
             border-radius: 18px;
@@ -135,9 +114,9 @@ html_code = """
             margin: 20px auto;
             max-width: 600px;
             transition: all 0.3s ease;
-        }
+        }}
 
-        .lottery-container {
+        .lottery-container {{
             display: none;
             position: fixed;
             top: 0;
@@ -148,9 +127,9 @@ html_code = """
             z-index: 1000;
             justify-content: center;
             align-items: center;
-        }
+        }}
 
-        .lottery-content {
+        .lottery-content {{
             background: white;
             padding: 40px;
             border-radius: 24px;
@@ -158,9 +137,9 @@ html_code = """
             max-width: 800px;
             text-align: center;
             position: relative;
-        }
+        }}
 
-        .ball-container {
+        .ball-container {{
             position: relative;
             width: 400px;
             height: 400px;
@@ -169,9 +148,9 @@ html_code = """
             background: linear-gradient(145deg, #f0f0f0, #e6e6e6);
             box-shadow: inset 0 8px 16px rgba(0,0,0,0.1);
             overflow: hidden;
-        }
+        }}
 
-        .ball {
+        .ball {{
             width: 50px;
             height: 50px;
             border-radius: 50%;
@@ -186,9 +165,9 @@ html_code = """
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             background: linear-gradient(145deg, #007aff, #0055ff);
-        }
+        }}
 
-        .winner-ball {
+        .winner-ball {{
             width: 120px;
             height: 120px;
             border-radius: 50%;
@@ -203,23 +182,23 @@ html_code = """
             animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
             opacity: 0;
             transform: scale(0.5);
-        }
+        }}
 
-        @keyframes popIn {
-            to {
+        @keyframes popIn {{
+            to {{
                 opacity: 1;
                 transform: scale(1);
-            }
-        }
+            }}
+        }}
 
-        .winner-container {
+        .winner-container {{
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             margin-top: 30px;
-        }
+        }}
 
-        .start-button {
+        .start-button {{
             background: #007aff;
             color: white;
             border: none;
@@ -232,19 +211,19 @@ html_code = """
             transition: all 0.3s ease;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
             margin: 20px;
-        }
+        }}
 
-        .start-button:hover {
+        .start-button:hover {{
             background: #0055ff;
             transform: translateY(-2px);
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-        }
+        }}
 
-        .start-button:active {
+        .start-button:active {{
             transform: translateY(0);
-        }
+        }}
 
-        .reset-button {
+        .reset-button {{
             background: #ff3b30;
             color: white;
             border: none;
@@ -255,14 +234,14 @@ html_code = """
             cursor: pointer;
             transition: all 0.3s ease;
             margin-top: 20px;
-        }
+        }}
 
-        .reset-button:hover {
+        .reset-button:hover {{
             background: #ff2d55;
             transform: translateY(-2px);
-        }
+        }}
 
-        .input-number {
+        .input-number {{
             width: 100%;
             max-width: 300px;
             padding: 15px;
@@ -273,15 +252,15 @@ html_code = """
             font-weight: 700;
             text-align: center;
             transition: all 0.3s ease;
-        }
+        }}
 
-        .input-number:focus {
+        .input-number:focus {{
             border-color: #007aff;
             outline: none;
             box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-        }
+        }}
 
-        .result {
+        .result {{
             margin-top: 30px;
             font-size: 28px;
             font-weight: 700;
@@ -289,14 +268,14 @@ html_code = """
             opacity: 0;
             transform: translateY(20px);
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        }}
 
-        .result.show {
+        .result.show {{
             opacity: 1;
             transform: translateY(0);
-        }
+        }}
 
-        .close-button {
+        .close-button {{
             position: absolute;
             top: 20px;
             right: 20px;
@@ -308,32 +287,32 @@ html_code = """
             padding: 8px;
             border-radius: 50%;
             transition: all 0.3s ease;
-        }
+        }}
 
-        .close-button:hover {
+        .close-button:hover {{
             background: rgba(0,0,0,0.1);
-        }
+        }}
 
-        @media (max-width: 768px) {
-            .ball-container {
+        @media (max-width: 768px) {{
+            .ball-container {{
                 width: 300px;
                 height: 300px;
-            }
+            }}
 
-            .lottery-content {
+            .lottery-content {{
                 padding: 20px;
-            }
+            }}
 
-            .winner-ball {
+            .winner-ball {{
                 width: 100px;
                 height: 100px;
                 font-size: 20px;
-            }
+            }}
 
-            .input-number {
+            .input-number {{
                 font-size: 24px;
-            }
-        }
+            }}
+        }}
     </style>
 </head>
 <body>
@@ -357,20 +336,20 @@ html_code = """
     </div>
 
     <script>
-        const playerNames = """ + names_js_array + """ || [];
+        const playerNames = {names_js_array};
         let isAnimating = false;
         let animationInterval;
 
-        function getRandomPosition(radius) {
+        function getRandomPosition(radius) {{
             const angle = Math.random() * 2 * Math.PI;
             const r = Math.random() * radius;
-            return {
+            return {{
                 x: r * Math.cos(angle),
                 y: r * Math.sin(angle)
-            };
-        }
+            }};
+        }}
 
-        function createSuperBallEffect() {
+        function createSuperBallEffect() {{
             const ballContainer = document.querySelector('.ball-container');
             const balls = [];
             const containerWidth = ballContainer.offsetWidth;
@@ -380,30 +359,31 @@ html_code = """
             
             ballContainer.innerHTML = '';
             
-            playerNames.forEach((name) => {
+            playerNames.forEach((name) => {{
                 const ball = document.createElement('div');
                 ball.className = 'ball';
                 ball.textContent = name;
                 const pos = getRandomPosition(150);
-                ball.style.left = `${centerX + pos.x}px`;
-                ball.style.top = `${centerY + pos.y}px`;
+                ball.style.left = `${{centerX + pos.x}}px`;
+                ball.style.top = `${{centerY + pos.y}}px`;
                 ballContainer.appendChild(ball);
-                balls.push({
+                balls.push({{
                     element: ball,
-                    velocity: { x: (Math.random() - 0.5) * 4, y: (Math.random() - 0.5) * 4 },
+                    velocity: {{ x: (Math.random() - 0.5) * 4, y: (Math.random() - 0.5) * 4 }},
                     angle: Math.random() * 2 * Math.PI,
                     speed: 1 + Math.random() * 2
-                });
-            });
+                }});
+            }});
 
-            return setInterval(() => {
-                balls.forEach(ball => {
+            return setInterval(() => {{
+                balls.forEach(ball => {{
                     ball.angle += ball.speed * 0.02;
                     ball.velocity.x += (Math.random() - 0.5) * 0.5;
                     ball.velocity.y += (Math.random() - 0.5) * 0.5;
                     
                     let x = centerX + Math.cos(ball.angle) * 150 + ball.velocity.x;
                     let y = centerY + Math.sin(ball.angle) * 150 + ball.velocity.y;
+                    
                     if (x < 50) x = 50;
                     if (x > containerWidth - 50) x = containerWidth - 50;
                     if (y < 50) y = 50;
@@ -412,57 +392,50 @@ html_code = """
                     ball.velocity.x *= 0.95;
                     ball.velocity.y *= 0.95;
                     
-                    ball.element.style.left = `${x}px`;
-                    ball.element.style.top = `${y}px`;
-                });
-            }, 16);
-        }
+                    ball.element.style.left = `${{x}}px`;
+                    ball.element.style.top = `${{y}}px`;
+                }});
+            }}, 16);
+        }}
 
-        function selectWinners(names, count) {
+        function selectWinners(names, count) {{
             const shuffled = [...names].sort(() => Math.random() - 0.5);
             return shuffled.slice(0, count);
-        }
+        }}
 
-        function showWinners(winners) {
+        function showWinners(winners) {{
             const winnerContainer = document.querySelector('.winner-container');
             const result = document.querySelector('.result');
             
             winnerContainer.innerHTML = '';
-            winners.forEach((winner, index) => {
-                setTimeout(() => {
+            winners.forEach((winner, index) => {{
+                setTimeout(() => {{
                     const winnerBall = document.createElement('div');
                     winnerBall.className = 'winner-ball';
                     winnerBall.textContent = winner;
                     winnerContainer.appendChild(winnerBall);
                     
-                    if (index === winners.length - 1) {
-                        setTimeout(() => {
+                    if (index === winners.length - 1) {{
+                        setTimeout(() => {{
                             result.textContent = '축하합니다! 🎉';
                             result.classList.add('show');
-                        }, 500);
-                    }
-                }, index * 800);
-            });
-        }
+                        }}, 500);
+                    }}
+                }}, index * 800);
+            }});
+        }}
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', () => {{
             const startButton = document.getElementById('startLottery');
             const resetButton = document.getElementById('resetLottery');
             const lotteryContainer = document.querySelector('.lottery-container');
             const closeButton = document.querySelector('.close-button');
             const numWinnersInput = document.getElementById('numWinners');
-            
-            // 초기 상태에서 참가자가 없으면 버튼 비활성화
-            if (!playerNames || playerNames.length === 0) {
-                startButton.disabled = true;
-                startButton.style.opacity = '0.5';
-                startButton.style.cursor = 'not-allowed';
-            }
 
-            function resetLottery() {
-                if (animationInterval) {
+            function resetLottery() {{
+                if (animationInterval) {{
                     clearInterval(animationInterval);
-                }
+                }}
                 const ballContainer = document.querySelector('.ball-container');
                 const winnerContainer = document.querySelector('.winner-container');
                 const result = document.querySelector('.result');
@@ -474,38 +447,34 @@ html_code = """
                 
                 lotteryContainer.style.display = 'none';
                 isAnimating = false;
-            }
+            }}
 
-            startButton.addEventListener('click', () => {
+            startButton.addEventListener('click', () => {{
                 const numWinners = parseInt(numWinnersInput.value);
-                if (!numWinners || numWinners < 1 || numWinners > playerNames.length) {
-                    alert(`당첨자 수는 1명에서 ${playerNames.length}명 사이로 입력해주세요.`);
+                if (!numWinners || numWinners < 1 || numWinners > playerNames.length) {{
+                    alert(`당첨자 수는 1명에서 ${{playerNames.length}}명 사이로 입력해주세요.`);
                     return;
-                }
+                }}
 
                 lotteryContainer.style.display = 'flex';
                 isAnimating = true;
                 animationInterval = createSuperBallEffect();
 
-                setTimeout(() => {
-                    if (animationInterval) {
+                setTimeout(() => {{
+                    if (animationInterval) {{
                         clearInterval(animationInterval);
-                    }
+                    }}
                     const winners = selectWinners(playerNames, numWinners);
                     showWinners(winners);
-                }, 3000);
-            });
+                }}, 3000);
+            }});
 
             resetButton.addEventListener('click', resetLottery);
             closeButton.addEventListener('click', resetLottery);
-        });
+        }});
     </script>
 </body>
 </html>
 """
 
-# HTML 렌더링 전에 참가자 수 확인
-if names_js_array == "[]":
-    st.warning("참가자를 입력하거나 업로드해주세요.")
-else:
-    html(html_code, height=800)
+html(html_code, height=800)
