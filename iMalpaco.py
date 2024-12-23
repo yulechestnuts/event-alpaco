@@ -317,7 +317,7 @@ html_code = f"""
 </head>
 <body>
     <div class="container">
-        <h2 class="title">[신한투자증권] 프로디지털아카데미 5기 동기부여 이벤트</h2>
+        <h2 class="title">iM뱅크 디지털 전문가 과정 - 크리스마스 이벤트</h2>
         
         <div class="upload-section">
             <input type="number" class="input-number" id="numWinners" placeholder="당첨자 수 입력" min="1" max="10">
