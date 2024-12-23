@@ -64,7 +64,7 @@ html_code = f"""
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>[하나은행] Digital Hana 路 데이터분석/서비스기획 4기 - 크리스마스 이벤트</title>
+    <title>[하나은행] Digital Hana 路 데이터분석/서비스기획 4기 <br> 크리스마스 이벤트</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
         
@@ -317,7 +317,7 @@ html_code = f"""
 </head>
 <body>
     <div class="container">
-        <h2 class="title">[하나은행] Digital Hana 路 데이터분석/서비스기획 4기 - 크리스마스 이벤트</h2>
+        <h2 class="title">[하나은행] Digital Hana 路 데이터분석/서비스기획 4기 <br> 크리스마스 이벤트</h2>
         
         <div class="upload-section">
             <input type="number" class="input-number" id="numWinners" placeholder="당첨자 수 입력" min="1" max="10">
