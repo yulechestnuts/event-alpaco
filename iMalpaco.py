@@ -3,7 +3,7 @@ import pandas as pd
 import json
 from streamlit.components.v1 import html
 
-st.set_page_config(page_title="프로디지털아카데미 이벤트", layout="wide")
+st.set_page_config(page_title="iM 뱅크 데이터 전문가 과정 동기부여 이벤트 - 크리스마스", layout="wide")
 
 def example_excel():
     example_data = pd.DataFrame({"이름": ["홍길동", "김철수", "이영희"]})
